@@ -1,0 +1,97 @@
+##Tic Toc Toe
+
+import random
+def initialize_board():
+    return [['' for _ in range(3)] for _ in range(3)]
+def display_board(board):
+    for row in board:
+        print('|'.join(cell if cell else ' ' for cell in row))
+        print('-' * 5)
+def is_full(board):
+    return all(cell != '' for row in board for cell in row)
+def is_game_over(board):
+    lines = [board[i] for i in range(3)]  # Rows
+    lines += [[board[i][j] for i in range(3)] for j in range(3)]  # Columns
+    lines += [[board[i][i] for i in range(3)]]  # Diagonals
+    lines += [[board[i][2 - i] for i in range(3)]]  # Anti-diagonals
+    if any(line[0] == line[1] == line[2] != '' for line in lines):
+        return True
+    return is_full(board)
+def is_valid_move(board, row, col):
+    return 0 <= row < 3 and 0 <= col < 3 and board[row][col] == ''
+def make_move(board, row, col, player):
+    if is_valid_move(board, row, col):
+        board[row][col] = player
+        return True
+    return False
+def undo_move(board, row, col):
+    board[row][col] = ''
+def minmax(board, depth, is_maximizing):
+    if is_game_over(board):
+        if is_full(board):
+            return 0
+        return -1 if is_maximizing else 1
+    if is_maximizing:
+        best_score = -float('inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == '':
+                    board[i][j] = 'X'
+                    score = minmax(board, depth + 1, False)
+                    board[i][j] = ''
+                    best_score = max(best_score, score)
+        return best_score
+    else:
+        best_score = float('inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == '':
+                    board[i][j] = 'O'
+                    score = minmax(board, depth + 1, True)
+                    board[i][j] = ''
+                    best_score = min(best_score, score)
+        return best_score
+def find_best_move(board):
+    best_score = -float('inf')
+    best_move = None
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == '':
+                board[i][j] = 'X'
+                score = minmax(board, 0, False)
+                board[i][j] = ''
+                if score > best_score:
+                    best_score = score
+                    best_move = (i, j)
+    return best_move
+def main():
+    board = initialize_board()
+    current_player = 'X'
+    while not is_game_over(board):
+        display_board(board)
+        if current_player == 'X':
+            row, col = find_best_move(board)
+            print(f"AI plays at row {row + 1}, column {col + 1}")
+        else:
+            while True:
+                try:
+                    row = int(input("Enter the row (1, 2 or 3): ")) - 1
+                    col = int(input("Enter the column (1,2 or 3): ")) - 1
+                    if is_valid_move(board, row, col):
+                        break
+                    else:
+                        print("Invalid move. Try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+        make_move(board, row, col, current_player)
+        current_player = 'O' if current_player == 'X' else 'X'
+    display_board(board)
+    if is_full(board):
+        print("It's a tie!")
+    elif current_player == 'X':
+        print("O wins!")
+    else:
+        print("X wins!")
+
+if __name__ == "__main__":
+    main()
